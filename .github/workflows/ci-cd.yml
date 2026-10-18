@@ -24,4 +24,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: meghanaKU/heart-api:latest
+          tags: tags: docker.io/meghanaKU/heart-api:latest
+
+        
+
