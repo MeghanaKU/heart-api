@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI-CD workflow
 
 on:
   push:
@@ -24,7 +24,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: tags: docker.io/meghanaKU/heart-api:latest
-
-        
-
+          tags: docker.io/meghanaKU/heart-api:latest
