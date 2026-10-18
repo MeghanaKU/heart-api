@@ -1,0 +1,24 @@
+artifact_path: file:///C:/Users/Meghana/Downloads/MLOPS/mlruns/2/models/m-40509801a20f4e7bb50edeb168e7ce68/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.11.6
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.9.1
+    skops_trusted_types:
+    - sklearn.tree._tree.Tree
+mlflow_version: 3.17.1
+model_id: m-40509801a20f4e7bb50edeb168e7ce68
+model_size_bytes: 2893648
+model_uuid: m-40509801a20f4e7bb50edeb168e7ce68
+prompts: null
+run_id: c340839e4fa645d6ac54bdfa1f9f4aed
+utc_time_created: '2026-10-18 16:48:47.375943'

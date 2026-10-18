@@ -1,50 +1,57 @@
+import pandas as pd
+import numpy as np
 import mlflow
 import mlflow.sklearn
-import joblib
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.pipeline import Pipeline
+from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score
 
-from data_loader import load_data
-from preprocess import build_preprocess
+# Load dataset
+df = pd.read_csv(r"C:\Users\Meghana\Downloads\MLOPS\data\raw\heart.csv")
 
-def train():
-    df = load_data()
-    X = df.drop("target", axis=1)
-    y = df["target"]
+X = df.drop("target", axis=1)
+y = df["target"]
 
-    pre = build_preprocess()
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    models = {
-        "logreg": LogisticRegression(max_iter=1000),
-        "rf": RandomForestClassifier(n_estimators=200)
-    }
+# Scaling
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
 
-    mlflow.set_tracking_uri("sqlite:///mlflow.db")
-    mlflow.set_experiment("heart-exp")
+# Start MLflow experiment
+mlflow.set_experiment("heart-disease-experiment")
 
-    best_model = None
-    best_score = -1
+def evaluate_model(model, model_name):
+    mlflow.start_run(run_name=model_name)
 
-    for name, model in models.items():
-        with mlflow.start_run(run_name=name):
-            pipe = Pipeline([("pre", pre), ("model", model)])
-            scores = cross_val_score(pipe, X, y, cv=5, scoring="roc_auc")
-            mean_score = scores.mean()
+    model.fit(X_train, y_train)
+    preds = model.predict(X_test)
 
-            mlflow.log_param("model_name", name)
-            mlflow.log_metric("roc_auc_mean", mean_score)
+    acc = accuracy_score(y_test, preds)
+    prec = precision_score(y_test, preds)
+    rec = recall_score(y_test, preds)
+    auc = roc_auc_score(y_test, preds)
 
-            if mean_score > best_score:
-                best_score = mean_score
-                best_model = pipe
+    mlflow.log_param("model_name", model_name)
+    mlflow.log_metric("accuracy", acc)
+    mlflow.log_metric("precision", prec)
+    mlflow.log_metric("recall", rec)
+    mlflow.log_metric("roc_auc", auc)
 
-    # ⭐ FIX: Fit the best model on full data
-    best_model.fit(X, y)
+    mlflow.sklearn.log_model(
+        model,
+        model_name,
+        skops_trusted_types=["sklearn.tree._tree.Tree"]
+    )
 
-    joblib.dump(best_model, "models/final_model.pkl")
-    print("Model saved!")
+    mlflow.end_run()
 
-if __name__ == "__main__":
-    train()
+# Train Logistic Regression
+evaluate_model(LogisticRegression(), "Logistic Regression")
+
+# Train Random Forest
+evaluate_model(RandomForestClassifier(), "Random Forest")

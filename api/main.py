@@ -1,25 +1,19 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
-from src.inference import predict_single
-
-class Patient(BaseModel):
-    age: float
-    sex: int
-    cp: int
-    trestbps: float
-    chol: float
-    fbs: int
-    restecg: int
-    thalach: float
-    exang: int
-    oldpeak: float
-    slope: int
-    ca: int
-    thal: int
+import pandas as pd
+import mlflow
 
 app = FastAPI()
 
+# Correct MLflow model path
+model_uri = "mlruns/2/models/m-9dbd09f797a4466cbf8c3644d7fa6313/artifacts"
+model = mlflow.sklearn.load_model(model_uri)
+
+@app.get("/")
+def home():
+    return {"message": "Heart Disease Prediction API is running"}
+
 @app.post("/predict")
-def predict(patient: Patient):
-    pred, proba = predict_single(patient.dict())
-    return {"prediction": pred, "confidence": proba}
+def predict(data: dict):
+    df = pd.DataFrame([data])
+    preds = model.predict(df)
+    return {"prediction": int(preds[0])}
